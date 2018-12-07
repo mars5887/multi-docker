@@ -1,0 +1,23 @@
+language: generic
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t mars5887/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run mars5887/react-test npm run test -- --coverage
+
+after_success:
+  - docker build -t mars5887/multi-client ./client
+  - docker build -t mars5887/multi-nginx ./nginx
+  - docker build -t mars5887/multi-server ./server
+  - docker build -t mars5887/multi-worker ./worker
+  #login to docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  #push images to docker hub
+  - docker push mars5887/multi-client
+  - docker push mars5887/multi-nginx
+  - docker push mars5887/multi-server
+  - docker push mars5887/multi-worker
